@@ -1,4 +1,4 @@
-    # MEWconnect
+yarn install    # MEWconnect
 
 ### Getting Started
 
