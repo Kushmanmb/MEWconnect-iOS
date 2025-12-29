@@ -18,7 +18,8 @@ extension Character {
    */
   var asciiValue: UInt32 {
     get {
-      return self.unicodeScalars.first?.value ?? 0
+      // Every Character has at least one unicode scalar, so this is safe
+      return self.unicodeScalars.first!.value
     }
   }
 }

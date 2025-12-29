@@ -18,12 +18,10 @@ extension Array where Element == UInt32 {
     // which may involve memory reallocation. This version is still O(n) but avoids
     // the reallocation overhead.
     let newValue = UInt32(bitPattern: (tmp ^ (tmp >> 19) ^ tmpT ^ (tmpT >> 8)))
-    if self.count > 0 {
-      for i in 0..<(self.count - 1) {
-        self[i] = self[i + 1]
-      }
-      self[self.count - 1] = newValue
+    for i in 0..<(self.count - 1) {
+      self[i] = self[i + 1]
     }
+    self[self.count - 1] = newValue
     
     let divisor = Int32.max
     
