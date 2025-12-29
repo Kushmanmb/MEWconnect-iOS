@@ -15,7 +15,8 @@ extension Array where Element == UInt32 {
     let tmpT = Int32(bitPattern: t)
     
     // Optimize: use direct array manipulation instead of remove(at:0) + append
-    // which requires shifting all elements (O(n)). This version is O(1).
+    // which may involve memory reallocation. This version is still O(n) but avoids
+    // the reallocation overhead.
     let newValue = UInt32(bitPattern: (tmp ^ (tmp >> 19) ^ tmpT ^ (tmpT >> 8)))
     if self.count > 0 {
       for i in 0..<(self.count - 1) {
