@@ -351,7 +351,7 @@ class Web3Wrapper: NSObject {
   
   private static func createBIP32Keystore(seed: Data, password: String, network: BlockchainNetworkType) -> BIP32Keystore? {
     let prefixPath = KeySettings.derivationPath(network)
-    guard let bip32Keystore = try? BIP32Keystore(seed: seed, password: password, prefixPath: prefixPath), bip32Keystore != nil else { return nil }
+    guard let bip32Keystore = try? BIP32Keystore(seed: seed, password: password, prefixPath: prefixPath) else { return nil }
     return bip32Keystore
   }
 
