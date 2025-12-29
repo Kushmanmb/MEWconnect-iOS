@@ -289,9 +289,11 @@ class Web3Wrapper: NSObject {
     guard let fromAddress = EthereumAddress(address) else { return nil }
     options.from = fromAddress
 
-    var requests:[JSONRPCrequest] = []
-
     if contractAddresses.count > 1 {
+      // Optimize: pre-allocate array capacity for better performance
+      var requests:[JSONRPCrequest] = []
+      requests.reserveCapacity(contractAddresses.count)
+      
       for contractAddress in contractAddresses {
         guard let ethContractAddress = EthereumAddress(contractAddress) else { return nil }
         contract.address = ethContractAddress

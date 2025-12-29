@@ -14,11 +14,11 @@ extension Character {
    * Returns the value of the first 8 bits of this unicode character.
    * This is a correct ascii representation of this character if it is
    * an ascii character.
+   * Optimized: access unicodeScalars directly without creating intermediate String
    */
   var asciiValue: UInt32 {
     get {
-      let s = String(self).unicodeScalars
-      return s[s.startIndex].value
+      return self.unicodeScalars.first?.value ?? 0
     }
   }
 }

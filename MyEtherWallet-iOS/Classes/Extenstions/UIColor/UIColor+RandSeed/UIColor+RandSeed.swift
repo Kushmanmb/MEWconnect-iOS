@@ -11,8 +11,10 @@ import UIKit
 extension UIColor {
   @objc
   static func color(seed: String) -> [UIColor] {
-    var colors:[UIColor] = [];
+    // Optimize: pre-allocate array with known capacity instead of repeated appends
     var randSeed = seed.randSeed()
+    var colors = [UIColor]()
+    colors.reserveCapacity(3)
     colors.append(UIColor(seed: &randSeed) ?? UIColor.black)
     colors.append(UIColor(seed: &randSeed) ?? UIColor.black)
     colors.append(UIColor(seed: &randSeed) ?? UIColor.black)

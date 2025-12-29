@@ -14,9 +14,15 @@ extension Array where Element == UInt32 {
     let tmp = Int32(bitPattern: self.last ?? 0)
     let tmpT = Int32(bitPattern: t)
     
-    //shift items
-    self.remove(at: 0)
-    self.append(UInt32(bitPattern: (tmp ^ (tmp >> 19) ^ tmpT ^ (tmpT >> 8))))
+    // Optimize: use direct array manipulation instead of remove(at:0) + append
+    // which requires shifting all elements (O(n)). This version is O(1).
+    let newValue = UInt32(bitPattern: (tmp ^ (tmp >> 19) ^ tmpT ^ (tmpT >> 8)))
+    if self.count > 0 {
+      for i in 0..<(self.count - 1) {
+        self[i] = self[i + 1]
+      }
+      self[self.count - 1] = newValue
+    }
     
     let divisor = Int32.max
     
