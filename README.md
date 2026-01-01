@@ -1,4 +1,4 @@
-yarn install    # MEWconnect
+kushmanmb yarn install    # MEWconnect
 
 ### Getting Started
 
