@@ -8,7 +8,7 @@ MEWconnect requires [Cocoapods](https://cocoapods.org) to run.
 
 Install the dependencies:
 
-```sh
+```sh$ sudo gem install cocoapods
 $ pod update
 ```
 
