@@ -12,11 +12,7 @@ import BigInt
 @objc
 extension NSString {
   func hexStringToDecimalString() -> NSString? {
-    var str = self as String
-    if str.hasPrefix("0x") {
-      let indexStart = str.index(str.startIndex, offsetBy: 2)
-      str = String(str[indexStart...])
-    }
+    let str = (self as String).stripHexPrefix()
     
     guard let bigUInt = BigUInt(str, radix: 16) else { return nil }
     let decimalString = String(bigUInt, radix: 10)

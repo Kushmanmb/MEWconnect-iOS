@@ -123,12 +123,11 @@ class Web3Wrapper: NSObject {
     guard let mnemonics = BIP39.generateMnemonicsFromEntropy(entropy: entropy) else { return nil }
     guard let seed = BIP39.seedFromMmemonics(mnemonics) else { return nil }
     
-    let prefixPath = KeySettings.derivationPath(network)
-    guard let bip32Keystore = try? BIP32Keystore(seed: seed, password: password, prefixPath: prefixPath), bip32Keystore != nil else { return nil }
-    guard let keydata = try? JSONEncoder().encode(bip32Keystore!.keystoreParams) else { return nil }
+    guard let bip32Keystore = Web3Wrapper.createBIP32Keystore(seed: seed, password: password, network: network) else { return nil }
+    guard let keydata = try? JSONEncoder().encode(bip32Keystore.keystoreParams) else { return nil }
     guard let encryptedKeydata = self.MEWcrypto?.encryptData(keydata, withPassword: password) else { return nil }
     
-    guard let keyAccount = bip32Keystore?.addresses?.first else { return nil }
+    guard let keyAccount = bip32Keystore.addresses?.first else { return nil }
     
     self.keychainService?.saveKeydata(encryptedKeydata, forAddress:keyAccount.address, ofAccount: account, inChainID: network)
     
@@ -145,8 +144,7 @@ class Web3Wrapper: NSObject {
    */
   @objc func validatePassword(password: String, masterToken: MasterTokenPlainObject, account: AccountPlainObject, network: BlockchainNetworkType = .ethereum) -> Bool {
     guard let masterTokenAddress = masterToken.address else { return false }
-    guard let encryptedKeydata = self.keychainService?.obtainKeydata(ofMasterToken: masterToken, ofAccount: account, inChainID: network) else { return false }
-    guard let keydata = self.MEWcrypto?.decryptData(encryptedKeydata, withPassword: password) else { return false }
+    guard let keydata = obtainDecryptedKeydata(masterToken: masterToken, account: account, network: network, password: password) else { return false }
 
     guard let bip32Keystore = BIP32Keystore(keydata) else { return false }
     guard let address = bip32Keystore.addresses?.first else { return false }
@@ -166,10 +164,9 @@ class Web3Wrapper: NSObject {
     let mnemonics: String = words.joined(separator: " ")
     guard let seed = BIP39.seedFromMmemonics(mnemonics) else { return nil }
     
-    let prefixPath = KeySettings.derivationPath(network)
-    guard let bip32Keystore = try? BIP32Keystore(seed: seed, password: "", prefixPath: prefixPath), bip32Keystore != nil else { return nil }
+    guard let bip32Keystore = Web3Wrapper.createBIP32Keystore(seed: seed, password: "", network: network) else { return nil }
     
-    guard let keyAccount = bip32Keystore?.addresses?.first else { return nil }
+    guard let keyAccount = bip32Keystore.addresses?.first else { return nil }
     
     return keyAccount.address
   }
@@ -201,8 +198,7 @@ class Web3Wrapper: NSObject {
     guard let hashData = Web3.Utils.hashPersonalMessage(messageData) else { return nil }
     if hashData != message.messageHash { return nil }
 
-    guard let encryptedKeydata = self.keychainService?.obtainKeydata(ofMasterToken: masterToken, ofAccount: account, inChainID: network) else { return nil }
-    guard let keydata = self.MEWcrypto?.decryptData(encryptedKeydata, withPassword: password) else { return nil }
+    guard let keydata = obtainDecryptedKeydata(masterToken: masterToken, account: account, network: network, password: password) else { return nil }
 
     guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
     guard let account = bip32Keystore.addresses?.first else { return nil }
@@ -228,8 +224,7 @@ class Web3Wrapper: NSObject {
    - Returns: Signed transaction or **nil** if something goes wrong
    */
   @objc func signTransaction(_ transaction: MEWConnectTransaction, password: String, masterToken: MasterTokenPlainObject, account: AccountPlainObject, network: BlockchainNetworkType = .ethereum) -> String? {
-    guard let encryptedKeydata = self.keychainService?.obtainKeydata(ofMasterToken: masterToken, ofAccount: account, inChainID: network) else { return nil }
-    guard let keydata = self.MEWcrypto?.decryptData(encryptedKeydata, withPassword: password) else { return nil }
+    guard let keydata = obtainDecryptedKeydata(masterToken: masterToken, account: account, network: network, password: password) else { return nil }
 
     guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
     guard let account = bip32Keystore.addresses?.first else { return nil }
@@ -349,6 +344,18 @@ class Web3Wrapper: NSObject {
   }
 
   //MARK: - Private
+  
+  private func obtainDecryptedKeydata(masterToken: MasterTokenPlainObject, account: AccountPlainObject, network: BlockchainNetworkType, password: String) -> Data? {
+    guard let encryptedKeydata = self.keychainService?.obtainKeydata(ofMasterToken: masterToken, ofAccount: account, inChainID: network) else { return nil }
+    guard let keydata = self.MEWcrypto?.decryptData(encryptedKeydata, withPassword: password) else { return nil }
+    return keydata
+  }
+  
+  private static func createBIP32Keystore(seed: Data, password: String, network: BlockchainNetworkType) -> BIP32Keystore? {
+    let prefixPath = KeySettings.derivationPath(network)
+    guard let bip32Keystore = try? BIP32Keystore(seed: seed, password: password, prefixPath: prefixPath) else { return nil }
+    return bip32Keystore
+  }
 
   private static func request(from: EthereumAddress, contract: EthereumContract, contractAddress: EthereumAddress, method: String, parameters: [AnyObject], options: Web3Options, transactionFields:[String]) -> JSONRPCrequest? {
     guard var transaction = contract.method(method, parameters: parameters) else { return nil }
