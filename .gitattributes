@@ -34,7 +34,7 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
-*.svg binary
+*.svg text
 
 # Fonts
 *.ttf binary

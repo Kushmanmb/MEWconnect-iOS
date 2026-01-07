@@ -28,7 +28,6 @@ xcuserdata/
 # Derived data
 DerivedData/
 *.hmap
-*.ipa
 
 # CocoaPods
 Pods/
