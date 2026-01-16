@@ -1,4 +1,4 @@
-kushmanmb yarn install    # MEWconnect
+# MEWconnect
 
 ### Getting Started
 
@@ -8,7 +8,8 @@ MEWconnect requires [Cocoapods](https://cocoapods.org) to run.
 
 Install the dependencies:
 
-```sh$ sudo gem install cocoapods
+```sh
+$ sudo gem install cocoapods
 $ pod update
 ```
 
