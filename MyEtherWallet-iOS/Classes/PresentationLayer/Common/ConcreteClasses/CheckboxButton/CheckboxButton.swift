@@ -127,37 +127,35 @@ class CheckboxButton: UIButton {
       attributedTitle.append(NSAttributedString(string: cDescription, attributes: descriptionAttributes))
     }
     if let cText = contentText {
-      let text: String
-      if attributedTitle.length > 0 {
-        text = cText + "\n"
-      } else {
-        text = cText
-      }
       let textParagraphStyle = NSMutableParagraphStyle()
       textParagraphStyle.lineSpacing = 4.0
       textParagraphStyle.paragraphSpacing = 2.0
       let textAttributes:[NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: contentTextFontSize, weight: .semibold),
                                                           .foregroundColor: UIColor.black,
                                                           .paragraphStyle: textParagraphStyle]
-      attributedTitle.insert(NSAttributedString(string: text, attributes: textAttributes), at: 0)
+      prependAttributedString(cText, withAttributes: textAttributes, to: attributedTitle)
     }
     if let cTitle = contentTitle {
-      let text: String
-      if attributedTitle.length > 0 {
-        text = cTitle + "\n"
-      } else {
-        text = cTitle
-      }
       let titleParagraphSpacing = NSMutableParagraphStyle()
       titleParagraphSpacing.paragraphSpacing = 6.0
       let titleAttributes:[NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: contentTitleFontSize, weight: .regular),
                                                            .foregroundColor: UIColor.black,
                                                            .paragraphStyle: titleParagraphSpacing]
-      attributedTitle.insert(NSAttributedString(string: text, attributes: titleAttributes), at: 0)
+      prependAttributedString(cTitle, withAttributes: titleAttributes, to: attributedTitle)
     }
     
     setAttributedTitle(attributedTitle, for: .normal)
     setAttributedTitle(attributedTitle, for: .selected)
+  }
+  
+  private func prependAttributedString(_ text: String, withAttributes attributes: [NSAttributedString.Key: Any], to attributedString: NSMutableAttributedString) {
+    let finalText: String
+    if attributedString.length > 0 {
+      finalText = text + "\n"
+    } else {
+      finalText = text
+    }
+    attributedString.insert(NSAttributedString(string: finalText, attributes: attributes), at: 0)
   }
   
   //MARK: - Override frames
