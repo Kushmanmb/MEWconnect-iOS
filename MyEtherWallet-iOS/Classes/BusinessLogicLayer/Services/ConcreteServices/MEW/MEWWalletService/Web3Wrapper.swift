@@ -124,7 +124,7 @@ class Web3Wrapper: NSObject {
     guard let seed = BIP39.seedFromMmemonics(mnemonics) else { return nil }
     
     guard let bip32Keystore = Web3Wrapper.createBIP32Keystore(seed: seed, password: password, network: network) else { return nil }
-    guard let keydata = try? JSONEncoder().encode(bip32Keystore.keystoreParams) else { return nil }
+    guard let keydata = Web3Wrapper.encodeToJSON(bip32Keystore.keystoreParams) else { return nil }
     guard let encryptedKeydata = self.MEWcrypto?.encryptData(keydata, withPassword: password) else { return nil }
     
     guard let keyAccount = bip32Keystore.addresses?.first else { return nil }
@@ -200,10 +200,10 @@ class Web3Wrapper: NSObject {
 
     guard let keydata = obtainDecryptedKeydata(masterToken: masterToken, account: account, network: network, password: password) else { return nil }
 
-    guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
-    guard let account = bip32Keystore.addresses?.first else { return nil }
-    guard var privateKey = try? bip32Keystore.UNSAFE_getPrivateKeyData(password: password, account: account) else { return nil }
-    defer {Data.zero(&privateKey)}
+    guard let result = extractPrivateKey(from: keydata, password: password) else { return nil }
+    var privateKey = result.privateKey
+    let account = result.account
+    defer { Data.zero(&privateKey) }
 
     guard let signedData = SECP256K1.signForRecovery(hash: hashData, privateKey: privateKey, useExtraEntropy: false).serializedSignature else { return nil }
     let signedMessage = signedData.toHexString().addHexPrefix()
@@ -226,16 +226,16 @@ class Web3Wrapper: NSObject {
   @objc func signTransaction(_ transaction: MEWConnectTransaction, password: String, masterToken: MasterTokenPlainObject, account: AccountPlainObject, network: BlockchainNetworkType = .ethereum) -> String? {
     guard let keydata = obtainDecryptedKeydata(masterToken: masterToken, account: account, network: network, password: password) else { return nil }
 
-    guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
-    guard let account = bip32Keystore.addresses?.first else { return nil }
-    guard var privateKey = try? bip32Keystore.UNSAFE_getPrivateKeyData(password: password, account: account) else { return nil }
-    defer {Data.zero(&privateKey)}
+    guard let result = extractPrivateKey(from: keydata, password: password) else { return nil }
+    var privateKey = result.privateKey
+    let account = result.account
+    defer { Data.zero(&privateKey) }
 
-    guard let gasPrice = BigUInt(transaction.gasPrice.stripHexPrefix(), radix: 16) else { return nil }
-    guard let gasLimit = BigUInt(transaction.gas.stripHexPrefix(), radix: 16) else { return nil }
-    guard let value = BigUInt(transaction.value.stripHexPrefix(), radix: 16) else { return nil }
+    guard let gasPrice = parseHexToBigUInt(transaction.gasPrice) else { return nil }
+    guard let gasLimit = parseHexToBigUInt(transaction.gas) else { return nil }
+    guard let value = parseHexToBigUInt(transaction.value) else { return nil }
     guard let data = Data.fromHex(transaction.data) else { return nil }
-    guard let nonce = BigUInt(transaction.nonce.stripHexPrefix(), radix: 16) else { return nil }
+    guard let nonce = parseHexToBigUInt(transaction.nonce) else { return nil }
     let chainId = BigUInt(transaction.chainId.int64Value)
 
     let toString: String? = transaction.to
@@ -270,8 +270,7 @@ class Web3Wrapper: NSObject {
   @objc static func balanceRequest(forAddress address: String) -> Data? {
     var request = JSONRPCRequestFabric.prepareRequest(.getBalance, parameters: [address, "latest"])
     request.id = address
-    guard let jsonData = try? JSONEncoder().encode(request) else { return nil }
-    return jsonData
+    return Web3Wrapper.encodeToJSON(request)
   }
   
   @objc static func contractRequest(forAddress address: String, contractAddresses: [String], abi: String, method: String, options: [AnyObject] = [], transactionFields:[String]) -> Data? {
@@ -297,8 +296,7 @@ class Web3Wrapper: NSObject {
         }
         requests.append(request)
       }
-      guard let jsonData = try? JSONEncoder().encode(requests) else { return nil }
-      return jsonData
+      return Web3Wrapper.encodeToJSON(requests)
     } else {
       guard let contractAddress = contractAddresses.first else {
         return nil
@@ -308,8 +306,7 @@ class Web3Wrapper: NSObject {
       guard let request = request(from: fromAddress, contract: contract, contractAddress: ethContractAddress, method: method, parameters: methodParameters, options: options, transactionFields: transactionFields) else {
         return nil
       }
-      guard let jsonData = try? JSONEncoder().encode(request) else { return nil }
-      return jsonData
+      return Web3Wrapper.encodeToJSON(request)
     }
   }
 
@@ -349,6 +346,23 @@ class Web3Wrapper: NSObject {
     guard let encryptedKeydata = self.keychainService?.obtainKeydata(ofMasterToken: masterToken, ofAccount: account, inChainID: network) else { return nil }
     guard let keydata = self.MEWcrypto?.decryptData(encryptedKeydata, withPassword: password) else { return nil }
     return keydata
+  }
+  
+  private static func encodeToJSON<T: Encodable>(_ value: T) -> Data? {
+    guard let jsonData = try? JSONEncoder().encode(value) else { return nil }
+    return jsonData
+  }
+  
+  private func parseHexToBigUInt(_ hex: String) -> BigUInt? {
+    return BigUInt(hex.stripHexPrefix(), radix: 16)
+  }
+  
+  private func extractPrivateKey(from keydata: Data, password: String) -> (privateKey: Data, account: EthereumAddress)? {
+    guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
+    guard let account = bip32Keystore.addresses?.first else { return nil }
+    guard var privateKey = try? bip32Keystore.UNSAFE_getPrivateKeyData(password: password, account: account) else { return nil }
+    defer { Data.zero(&privateKey) }
+    return (privateKey, account)
   }
   
   private static func createBIP32Keystore(seed: Data, password: String, network: BlockchainNetworkType) -> BIP32Keystore? {
