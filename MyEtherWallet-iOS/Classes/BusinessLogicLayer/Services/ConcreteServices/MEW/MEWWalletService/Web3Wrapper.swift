@@ -356,6 +356,12 @@ class Web3Wrapper: NSObject {
     return BigUInt(hex.stripHexPrefix(), radix: 16)
   }
   
+  /// Extracts the private key from BIP32 keystore data
+  /// - Important: Caller is responsible for securely zeroing the returned private key data using Data.zero(&privateKey)
+  /// - Parameters:
+  ///   - keydata: The BIP32 keystore data
+  ///   - password: The password to decrypt the keystore
+  /// - Returns: A tuple containing the private key data and ethereum account address, or nil if extraction fails
   private func extractPrivateKey(from keydata: Data, password: String) -> (privateKey: Data, account: EthereumAddress)? {
     guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
     guard let account = bip32Keystore.addresses?.first else { return nil }
