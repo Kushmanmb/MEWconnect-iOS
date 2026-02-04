@@ -349,8 +349,7 @@ class Web3Wrapper: NSObject {
   }
   
   private static func encodeToJSON<T: Encodable>(_ value: T) -> Data? {
-    guard let jsonData = try? JSONEncoder().encode(value) else { return nil }
-    return jsonData
+    return try? JSONEncoder().encode(value)
   }
   
   private func parseHexToBigUInt(_ hex: String) -> BigUInt? {
@@ -360,8 +359,7 @@ class Web3Wrapper: NSObject {
   private func extractPrivateKey(from keydata: Data, password: String) -> (privateKey: Data, account: EthereumAddress)? {
     guard let bip32Keystore = BIP32Keystore(keydata) else { return nil }
     guard let account = bip32Keystore.addresses?.first else { return nil }
-    guard var privateKey = try? bip32Keystore.UNSAFE_getPrivateKeyData(password: password, account: account) else { return nil }
-    defer { Data.zero(&privateKey) }
+    guard let privateKey = try? bip32Keystore.UNSAFE_getPrivateKeyData(password: password, account: account) else { return nil }
     return (privateKey, account)
   }
   
