@@ -11,7 +11,7 @@ abstract_target 'MEWconnect' do
   pod 'ViperMcFlurryX', :git => 'https://github.com/Foboz/ViperMcFlurryX.git'
   
   # Network
-  pod 'AFNetworking'
+  pod 'AFNetworking', '~> 4.0'
   pod 'Socket.IO-Client-Swift'
   
   # Other
@@ -20,13 +20,13 @@ abstract_target 'MEWconnect' do
   pod 'zxcvbn-ios'
   
   # Logging & crash reporting
-  pod 'CocoaLumberjack', '~> 3.4'
+  pod 'CocoaLumberjack', '~> 3.8'
   
   # Core Data
   pod 'MagicalRecord', '~> 2.3'
   
   # Images & Video
-  pod 'SDWebImage', '~> 3.7'
+  pod 'SDWebImage', '~> 5.0'
   
   # UI
   pod 'Nimbus/Models'
@@ -45,16 +45,16 @@ abstract_target 'MEWconnect' do
   
   # Ethereum
   pod 'web3swift', :git => 'https://github.com/Foboz/web3swift.git', :branch => 'v200_mew'
-  pod 'GoogleWebRTC', '=1.1.26675'
+  pod 'GoogleWebRTC', '=1.1.32000'
   
   # Cryptographic
   pod 'TrezorCrypto'#, :git => 'https://github.com/Foboz/trezor-crypto-ios.git'
   
   # Keychain
-  pod 'UICKeyChainStore', '~> 2.1'
+  pod 'UICKeyChainStore', '~> 2.2'
   
   # Data mapping
-  pod 'EasyMapping', '~> 0.15'
+  pod 'EasyMapping', '~> 0.20'
 
   target 'MyEtherWallet-iOS' do
     
@@ -64,7 +64,7 @@ abstract_target 'MEWconnect' do
     target 'MyEtherWallet-iOSTests' do
       # Pods for testing
       
-      pod 'OCMock', '3.3.1'
+      pod 'OCMock', '~> 3.9'
       pod 'RamblerTyphoonUtils/AssemblyTesting', '1.5.0'
     end
     
@@ -91,7 +91,7 @@ post_install do |installer|
       if target.name == 'M13Checkbox'
         config.build_settings['SWIFT_VERSION'] = '4.2'
         else
-        config.build_settings['SWIFT_VERSION'] = '4.0'
+        config.build_settings['SWIFT_VERSION'] = '5.0'
       end
       
       if target.name == 'RamblerTyphoonUtils-AssemblyTesting' ||
