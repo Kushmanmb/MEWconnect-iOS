@@ -143,7 +143,7 @@
     AVMetadataMachineReadableCodeObject *metadataObj = [metadataObjects firstObject];
     if ([metadataObj.type isEqualToString:AVMetadataObjectTypeQRCode]) {
       NSString *QRCode = [metadataObj stringValue];
-      dispatch_sync(dispatch_get_main_queue(), ^{
+      dispatch_async(dispatch_get_main_queue(), ^{
         [self.delegate cameraService:self didScanQRCode:QRCode];
       });
     }

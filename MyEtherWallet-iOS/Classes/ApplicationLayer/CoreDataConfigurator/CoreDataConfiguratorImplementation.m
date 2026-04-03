@@ -66,6 +66,9 @@ static NSString *const kCoreDataConfiguratorReset1012  = @"com.myetherwallet.cor
   NSPersistentStoreCoordinator *coordinator = [NSPersistentStoreCoordinator MR_coordinatorWithSqliteStoreNamed:oldStoreName];
   // grab the current store
   NSPersistentStore *currentStore = coordinator.persistentStores.lastObject;
+  if (!currentStore) {
+    return;
+  }
   // create a new URL
   NSURL *directory = [self.fileManager containerURLForSecurityApplicationGroupIdentifier:kAppGroupIdentifier];
   NSURL *newStoreURL = [directory URLByAppendingPathComponent:kCoreDataName];
