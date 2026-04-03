@@ -110,8 +110,10 @@ static NSTimeInterval kMEWConnectServiceTimeoutInterval = 10.0;
   MEWConnectStatus status = self.connectionStatus;
   [self _disconnect];
   if (status != MEWConnectStatusDisconnected) {
+    __weak typeof(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-      [self.delegate MEWConnectDidDisconnected:self];
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      [strongSelf.delegate MEWConnectDidDisconnected:strongSelf];
     });
   }
 }
@@ -239,7 +241,7 @@ static NSTimeInterval kMEWConnectServiceTimeoutInterval = 10.0;
                             (1ull * NSEC_PER_SEC) / 10);
   @weakify(self);
   dispatch_source_set_event_handler(self.timeoutTimer, ^{
-    @strongify(self)
+    @strongify(self);
     dispatch_async(dispatch_get_main_queue(), ^{
       [self _timeout];
     });
